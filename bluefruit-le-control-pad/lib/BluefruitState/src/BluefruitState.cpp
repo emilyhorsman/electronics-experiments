@@ -55,6 +55,13 @@ void BluefruitState::finalizeParsing() {
       memcpy(&m_gyroZ, &m_buf[8], 4);
       bitSet(m_isDirty, GYRO);
       break;
+    case QUATERNIONS:
+      memcpy(&m_quatX, &m_buf[0], 4);
+      memcpy(&m_quatY, &m_buf[4], 4);
+      memcpy(&m_quatZ, &m_buf[8], 4);
+      memcpy(&m_quatW, &m_buf[12], 4);
+      bitSet(m_isDirty, QUATERNIONS);
+      break;
     default:
       resetParsing();
       return;
@@ -94,6 +101,9 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
       case 'G':
         m_data = GYRO;
         break;
+      case 'Q':
+        m_data = QUATERNIONS;
+        break;
       default:
         resetParsing();
         return m_replyByte;
@@ -109,7 +119,8 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
   if (
     (m_replyIndex == 4 && m_data == BUTTONS) ||
     (m_replyIndex == 14 && m_data == ACCELEROMETER) ||
-    (m_replyIndex == 14 && m_data == GYRO)
+    (m_replyIndex == 14 && m_data == GYRO) ||
+    (m_replyIndex == 18 && m_data == QUATERNIONS)
   ) {
     finalizeParsing();
     return m_replyByte;
@@ -153,6 +164,17 @@ void BluefruitState::printGyro() {
   Serial.println(m_gyroZ);
 }
 
+void BluefruitState::printQuat() {
+  Serial.print("X: ");
+  Serial.print(m_quatX);
+  Serial.print(" Y: ");
+  Serial.print(m_quatY);
+  Serial.print(" Z: ");
+  Serial.print(m_quatZ);
+  Serial.print(" W: ");
+  Serial.println(m_quatW);
+}
+
 #define GETTER(member, func) float BluefruitState::func() { return member; }
 
 GETTER(m_accelX, getAccelX)
@@ -161,3 +183,7 @@ GETTER(m_accelZ, getAccelZ)
 GETTER(m_gyroX, getGyroX)
 GETTER(m_gyroY, getGyroY)
 GETTER(m_gyroZ, getGyroZ)
+GETTER(m_quatX, getQuatX)
+GETTER(m_quatY, getQuatY)
+GETTER(m_quatZ, getQuatZ)
+GETTER(m_quatW, getQuatW)

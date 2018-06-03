@@ -3,7 +3,7 @@
 
 class BluefruitState {
 public:
-  enum Data { NONE, BUTTONS, ACCELEROMETER, GYRO };
+  enum Data { NONE, BUTTONS, ACCELEROMETER, GYRO, QUATERNIONS };
 
 private:
   uint8_t m_isPressed;
@@ -14,12 +14,16 @@ private:
   float m_gyroX;
   float m_gyroY;
   float m_gyroZ;
+  float m_quatX;
+  float m_quatY;
+  float m_quatZ;
+  float m_quatW;
 
   Data m_data;
   uint8_t m_replyByte;
   uint8_t m_replyIndex;
   uint8_t m_checksum;
-  uint8_t m_buf[12];
+  uint8_t m_buf[16];
 
   void resetParsing();
   void finalizeParsing();
@@ -32,12 +36,17 @@ public:
   void printButtons();
   void printAccel();
   void printGyro();
+  void printQuat();
   float getAccelX();
   float getAccelY();
   float getAccelZ();
   float getGyroX();
   float getGyroY();
   float getGyroZ();
+  float getQuatX();
+  float getQuatY();
+  float getQuatZ();
+  float getQuatW();
 };
 
 #endif

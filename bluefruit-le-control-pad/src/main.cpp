@@ -42,4 +42,8 @@ void loop() {
   if (ctrl.isDirty(BluefruitState::BUTTONS)) {
     ctrl.printButtons();
   }
+
+  if (ctrl.isDirty(BluefruitState::QUATERNIONS)) {
+    ctrl.printQuat();
+  }
 }
