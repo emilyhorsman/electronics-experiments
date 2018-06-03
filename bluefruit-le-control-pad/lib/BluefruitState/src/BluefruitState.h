@@ -2,10 +2,12 @@
 #define _BLUEFRUIT_STATE_H_
 
 class BluefruitState {
-private:
+public:
   enum Data { NONE, BUTTONS, ACCELEROMETER, GYRO };
+
+private:
   uint8_t m_isPressed;
-  bool m_isDirty;
+  uint8_t m_isDirty;
   float m_accelX;
   float m_accelY;
   float m_accelZ;
@@ -23,7 +25,7 @@ private:
   void finalizeParsing();
 
 public:
-  bool isDirty();
+  bool isDirty(Data data);
   bool isButtonPressed(uint8_t num);
   uint8_t getButtons();
   uint8_t read(Adafruit_BluefruitLE_SPI &ble);

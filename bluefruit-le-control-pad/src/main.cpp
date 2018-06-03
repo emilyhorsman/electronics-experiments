@@ -31,9 +31,15 @@ void setup() {
 
 void loop() {
   ctrl.read(ble);
-  if (ctrl.isDirty()) {
+  if (ctrl.isDirty(BluefruitState::ACCELEROMETER)) {
     ctrl.printAccel();
+  }
+
+  if (ctrl.isDirty(BluefruitState::GYRO)) {
     ctrl.printGyro();
+  }
+
+  if (ctrl.isDirty(BluefruitState::BUTTONS)) {
     ctrl.printControlPad();
   }
 }

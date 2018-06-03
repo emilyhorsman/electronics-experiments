@@ -10,8 +10,12 @@ uint8_t BluefruitState::getButtons() {
   return m_isPressed;
 }
 
-bool BluefruitState::isDirty() {
-  return m_isDirty;
+bool BluefruitState::isDirty(Data data) {
+  if (data == NONE) {
+    // This is a cheat for "Is any of the data dirty?"
+    return data > 0;
+  }
+  return bitRead(m_isDirty, data);
 }
 
 void BluefruitState::resetParsing() {
@@ -37,30 +41,31 @@ void BluefruitState::finalizeParsing() {
       } else {
         bitClear(m_isPressed, m_buf[0] - '0' - 1);
       }
-      Serial.println(m_isPressed);
+      bitSet(m_isDirty, BUTTONS);
       break;
     case ACCELEROMETER:
       memcpy(&m_accelX, &m_buf[0], 4);
       memcpy(&m_accelY, &m_buf[4], 4);
       memcpy(&m_accelZ, &m_buf[8], 4);
+      bitSet(m_isDirty, ACCELEROMETER);
       break;
     case GYRO:
       memcpy(&m_gyroX, &m_buf[0], 4);
       memcpy(&m_gyroY, &m_buf[4], 4);
       memcpy(&m_gyroZ, &m_buf[8], 4);
+      bitSet(m_isDirty, GYRO);
       break;
     default:
       resetParsing();
       return;
   }
 
-  m_isDirty = true;
   resetParsing();
   return;
 }
 
 uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
-  m_isDirty = false;
+  m_isDirty = 0;
 
   if (!ble.available()) {
     return 0;
