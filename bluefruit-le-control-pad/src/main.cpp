@@ -32,6 +32,7 @@ void setup() {
 void loop() {
   ctrl.read(ble);
   if (ctrl.isDirty()) {
+    ctrl.printAccel();
     ctrl.printControlPad();
   }
 }
