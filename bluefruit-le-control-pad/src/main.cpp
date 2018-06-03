@@ -33,6 +33,7 @@ void loop() {
   ctrl.read(ble);
   if (ctrl.isDirty()) {
     ctrl.printAccel();
+    ctrl.printGyro();
     ctrl.printControlPad();
   }
 }

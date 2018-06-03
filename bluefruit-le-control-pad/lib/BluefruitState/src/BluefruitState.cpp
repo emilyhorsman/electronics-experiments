@@ -35,6 +35,11 @@ void BluefruitState::finalizeParsing() {
       memcpy(&m_accelY, &m_buf[4], 4);
       memcpy(&m_accelZ, &m_buf[8], 4);
       break;
+    case GYRO:
+      memcpy(&m_gyroX, &m_buf[0], 4);
+      memcpy(&m_gyroY, &m_buf[4], 4);
+      memcpy(&m_gyroZ, &m_buf[8], 4);
+      break;
     default:
       resetParsing();
       return;
@@ -71,13 +76,16 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
         break;
       case 'A':
         m_data = ACCELEROMETER;
-        memset(m_buf, 0, 12);
+        break;
+      case 'G':
+        m_data = GYRO;
         break;
       default:
         resetParsing();
         return m_replyByte;
     }
 
+    memset(m_buf, 0, 12);
     m_replyIndex++;
     m_checksum += m_replyByte;
     return m_replyByte;
@@ -86,7 +94,8 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
   // See if we've reached the checksum and can finalize the parsing.
   if (
     (m_replyIndex == 4 && m_data == BUTTONS) ||
-    (m_replyIndex == 14 && m_data == ACCELEROMETER)
+    (m_replyIndex == 14 && m_data == ACCELEROMETER) ||
+    (m_replyIndex == 14 && m_data == GYRO)
   ) {
     finalizeParsing();
     return m_replyByte;
@@ -121,6 +130,15 @@ void BluefruitState::printAccel() {
   Serial.println(m_accelZ);
 }
 
+void BluefruitState::printGyro() {
+  Serial.print("X: ");
+  Serial.print(m_gyroX);
+  Serial.print(" Y: ");
+  Serial.print(m_gyroY);
+  Serial.print(" Z: ");
+  Serial.println(m_gyroZ);
+}
+
 float BluefruitState::getAccelX() {
   return m_accelX;
 }
@@ -131,4 +149,16 @@ float BluefruitState::getAccelY() {
 
 float BluefruitState::getAccelZ() {
   return m_accelZ;
+}
+
+float BluefruitState::getGyroX() {
+  return m_gyroX;
+}
+
+float BluefruitState::getGyroY() {
+  return m_gyroY;
+}
+
+float BluefruitState::getGyroZ() {
+  return m_gyroZ;
 }
