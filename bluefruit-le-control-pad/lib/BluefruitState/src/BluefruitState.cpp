@@ -3,7 +3,11 @@
 #include "BluefruitState.h"
 
 bool BluefruitState::isButtonPressed(uint8_t num) {
-  return m_isPressed[num - 1];
+  return bitRead(m_isPressed, num - 1);
+}
+
+uint8_t BluefruitState::getButtons() {
+  return m_isPressed;
 }
 
 bool BluefruitState::isDirty() {
@@ -28,7 +32,12 @@ void BluefruitState::finalizeParsing() {
 
   switch (m_data) {
     case BUTTONS:
-      m_isPressed[m_buf[0] - '0' - 1] = m_buf[1] - '0';
+      if (m_buf[1] - '0') {
+        bitSet(m_isPressed, m_buf[0] - '0' - 1);
+      } else {
+        bitClear(m_isPressed, m_buf[0] - '0' - 1);
+      }
+      Serial.println(m_isPressed);
       break;
     case ACCELEROMETER:
       memcpy(&m_accelX, &m_buf[0], 4);
@@ -112,9 +121,9 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
 }
 
 void BluefruitState::printControlPad() {
-  for (uint8_t i = 0; i < 8; i++) {
-    Serial.print(m_isPressed[i]);
-    if (i < 7) {
+  for (uint8_t i = 1; i <= 8; i++) {
+    Serial.print(isButtonPressed(i));
+    if (i < 8) {
       Serial.print(" ");
     }
   }

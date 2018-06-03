@@ -4,7 +4,7 @@
 class BluefruitState {
 private:
   enum Data { NONE, BUTTONS, ACCELEROMETER, GYRO };
-  bool m_isPressed[8];
+  uint8_t m_isPressed;
   bool m_isDirty;
   float m_accelX;
   float m_accelY;
@@ -25,6 +25,7 @@ private:
 public:
   bool isDirty();
   bool isButtonPressed(uint8_t num);
+  uint8_t getButtons();
   uint8_t read(Adafruit_BluefruitLE_SPI &ble);
   void printControlPad();
   void printAccel();
@@ -38,6 +39,3 @@ public:
 };
 
 #endif
-
-// TODO: dirty bitset
-// TODO: isPressed can be a byte
