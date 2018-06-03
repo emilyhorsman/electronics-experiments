@@ -29,7 +29,7 @@ public:
   bool isButtonPressed(uint8_t num);
   uint8_t getButtons();
   uint8_t read(Adafruit_BluefruitLE_SPI &ble);
-  void printControlPad();
+  void printButtons();
   void printAccel();
   void printGyro();
   float getAccelX();

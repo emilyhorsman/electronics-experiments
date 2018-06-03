@@ -125,7 +125,7 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
   return m_replyByte;
 }
 
-void BluefruitState::printControlPad() {
+void BluefruitState::printButtons() {
   for (uint8_t i = 1; i <= 8; i++) {
     Serial.print(isButtonPressed(i));
     if (i < 8) {

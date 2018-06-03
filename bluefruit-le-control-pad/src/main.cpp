@@ -40,6 +40,6 @@ void loop() {
   }
 
   if (ctrl.isDirty(BluefruitState::BUTTONS)) {
-    ctrl.printControlPad();
+    ctrl.printButtons();
   }
 }
