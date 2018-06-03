@@ -8,10 +8,7 @@
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 #include "Arduino.h"
-
-#define BLUEFRUIT_SPI_CS   8
-#define BLUEFRUIT_SPI_IRQ  7
-#define BLUEFRUIT_SPI_RST  4
+#include "../../common/BluefruitLEConfig.h"
 
 #define DISCHARGE_PIN   5
 #define CHARGE_PIN      6
