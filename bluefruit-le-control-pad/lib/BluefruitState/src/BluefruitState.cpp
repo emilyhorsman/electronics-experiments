@@ -26,65 +26,76 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
   m_replyByte = ble.read();
   if (m_replyIndex == 0 && m_replyByte == '!') {
     m_isValidReply = true;
+    m_replyIndex++;
+    m_checksum += m_replyByte;
+    return m_replyByte;
   } else if (m_replyIndex == 1 && m_replyByte == 'B') {
     m_isValidReply = true;
     m_data = BUTTONS;
+    m_replyIndex++;
+    m_checksum += m_replyByte;
+    return m_replyByte;
   } else if (m_replyIndex == 1 && m_replyByte == 'A') {
     m_isValidReply = true;
     m_data = ACCELEROMETER;
+    m_replyIndex++;
+    m_checksum += m_replyByte;
     memset(m_accelBuf, 0, 12);
-  } else if (m_replyIndex == 2 && m_data == BUTTONS) {
-    m_isValidReply = true;
-    m_buttonNum = m_replyByte - '0';
-  } else if (m_replyIndex == 3 && m_data == BUTTONS) {
-    m_isValidReply = true;
-    m_buttonVal = m_replyByte - '0';
-  } else if (m_replyIndex >= 2 && m_replyIndex <= 13 && m_data == ACCELEROMETER) {
-    m_isValidReply = true;
-    m_accelBuf[m_replyIndex - 2] = m_replyByte;
+    return m_replyByte;
+  } else if (m_replyIndex <= 1) {
+    resetParsing();
+    return m_replyByte;
   }
 
-  if (m_replyIndex <= 1 && m_isValidReply) {
+  if (m_data == BUTTONS) {
+    switch (m_replyIndex) {
+      case 2:
+        m_buttonNum = m_replyByte - '0';
+        break;
+      case 3:
+        m_buttonVal = m_replyByte - '0';
+        break;
+      case 4:
+        m_checksum = ~m_checksum;
+        if (m_checksum != m_replyByte) {
+          Serial.print("Checksum mismatch. Received: ");
+          Serial.print(m_checksum);
+          Serial.print(" Expected: ");
+          Serial.println(m_replyByte);
+          return m_replyByte;
+        }
+
+        m_isPressed[m_buttonNum - 1] = m_buttonVal;
+        m_isDirty = true;
+        resetParsing();
+        return m_replyByte;
+    }
+
     m_replyIndex++;
     m_checksum += m_replyByte;
-    return m_replyByte;
-  } else if (m_replyIndex <= 3 && m_data == BUTTONS && m_isValidReply) {
-    m_replyIndex++;
-    m_checksum += m_replyByte;
-    return m_replyByte;
-  } else if (m_replyIndex == 4 && m_data == BUTTONS) {
-    m_checksum = ~m_checksum;
-    if (m_checksum != m_replyByte) {
-      Serial.print("Checksum mismatch. Received: ");
-      Serial.print(m_checksum);
-      Serial.print(" Expected: ");
-      Serial.println(m_replyByte);
+  } else if (m_data == ACCELEROMETER) {
+    if (m_replyIndex <= 13) {
+      m_accelBuf[m_replyIndex - 2] = m_replyByte;
+    } else if (m_replyIndex == 14) {
+      m_checksum = ~m_checksum;
+      if (m_checksum != m_replyByte) {
+        Serial.print("Checksum mismatch. Received: ");
+        Serial.print(m_checksum);
+        Serial.print(" Expected: ");
+        Serial.println(m_replyByte);
+        return m_replyByte;
+      }
+
+      m_isDirty = true;
+      memcpy(&m_accelX, &m_accelBuf[0], 4);
+      memcpy(&m_accelY, &m_accelBuf[4], 4);
+      memcpy(&m_accelZ, &m_accelBuf[8], 4);
+      resetParsing();
       return m_replyByte;
     }
 
-    resetParsing();
-    m_isPressed[m_buttonNum - 1] = m_buttonVal;
-    m_isDirty = true;
-  } else if (m_replyIndex <= 13 && m_data == ACCELEROMETER && m_isValidReply) {
     m_replyIndex++;
     m_checksum += m_replyByte;
-
-    return m_replyByte;
-  } else if (m_replyIndex == 14 && m_data == ACCELEROMETER) {
-    m_checksum = ~m_checksum;
-    if (m_checksum != m_replyByte) {
-      Serial.print("Checksum mismatch. Received: ");
-      Serial.print(m_checksum);
-      Serial.print(" Expected: ");
-      Serial.println(m_replyByte);
-      return m_replyByte;
-    }
-
-    m_isDirty = true;
-    memcpy(&m_accelX, &m_accelBuf[0], 16);
-    memcpy(&m_accelY, &m_accelBuf[4], 16);
-    memcpy(&m_accelZ, &m_accelBuf[8], 16);
-    resetParsing();
   } else {
     resetParsing();
   }
