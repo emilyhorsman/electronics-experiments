@@ -153,26 +153,11 @@ void BluefruitState::printGyro() {
   Serial.println(m_gyroZ);
 }
 
-float BluefruitState::getAccelX() {
-  return m_accelX;
-}
+#define GETTER(member, func) float BluefruitState::func() { return member; }
 
-float BluefruitState::getAccelY() {
-  return m_accelY;
-}
-
-float BluefruitState::getAccelZ() {
-  return m_accelZ;
-}
-
-float BluefruitState::getGyroX() {
-  return m_gyroX;
-}
-
-float BluefruitState::getGyroY() {
-  return m_gyroY;
-}
-
-float BluefruitState::getGyroZ() {
-  return m_gyroZ;
-}
+GETTER(m_accelX, getAccelX)
+GETTER(m_accelY, getAccelY)
+GETTER(m_accelZ, getAccelZ)
+GETTER(m_gyroX, getGyroX)
+GETTER(m_gyroY, getGyroY)
+GETTER(m_gyroZ, getGyroZ)
