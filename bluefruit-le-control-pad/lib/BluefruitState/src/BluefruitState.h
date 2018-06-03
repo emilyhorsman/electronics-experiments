@@ -10,16 +10,14 @@ private:
   float m_accelY;
   float m_accelZ;
 
-  bool m_isValidReply;
   Data m_data;
   uint8_t m_replyByte;
   uint8_t m_replyIndex;
   uint8_t m_checksum;
-  uint8_t m_buttonNum;
-  bool m_buttonVal;
-  uint8_t m_accelBuf[12];
+  uint8_t m_buf[12];
 
   void resetParsing();
+  void finalizeParsing();
 
 public:
   bool isDirty();
