@@ -1,0 +1,10 @@
+.App-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+.App-button {
+  width: 10vw;
+  height: 10vw;
+  display: block;
+}
