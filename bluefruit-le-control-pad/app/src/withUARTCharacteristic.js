@@ -27,9 +27,17 @@ function withUARTCharacteristic(WrappedComponent) {
       this.isPressed = {};
       this.state = {
         ready: false,
-        loading: false
+        loading: false,
+        deviceName: null
       };
     }
+
+    onDisconnect = () => {
+      this.setState({
+        ready: false,
+        deviceName: null
+      });
+    };
 
     requestDevice = async () => {
       this.setState({
@@ -41,12 +49,19 @@ function withUARTCharacteristic(WrappedComponent) {
           filters: [{ services: [uart_service_uuid] }],
           optionalServices: [uart_service_uuid]
         })
-        .then(device => device.gatt.connect())
+        .then(device => {
+          device.addEventListener("gattserverdisconnected", this.onDisconnect);
+          return device.gatt.connect();
+        })
         .then(server => server.getPrimaryService(uart_service_uuid))
         .then(service => service.getCharacteristic(tx_characteristic_uuid))
         .then(characteristic => {
           this.characteristic = characteristic;
-          this.setState({ ready: true, loading: false });
+          this.setState({
+            ready: true,
+            loading: false,
+            deviceName: characteristic.service.device.name
+          });
         })
         .catch(error => {
           console.error("Error requesting Bluetooth device.", error);
@@ -67,6 +82,7 @@ function withUARTCharacteristic(WrappedComponent) {
         <WrappedComponent
           ready={this.state.ready}
           loading={this.state.loading}
+          deviceName={this.state.deviceName}
           sendAsciiString={this.sendAsciiString}
           requestDevice={this.requestDevice}
         />

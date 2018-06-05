@@ -3,12 +3,26 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.App__Header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 40px;
+  width: 100%;
   padding: 20px;
   box-sizing: border-box;
 }
 
-.App__Pairing {
-  display: flex;
-  align-items: center;
-  margin-bottom: 40px;
+.App__RequestDevice {
+  line-height: 24px;
+}
+
+.App__DeviceName {
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 0 20px;
+  line-height: 23px;
 }
