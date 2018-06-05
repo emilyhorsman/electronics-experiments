@@ -30,6 +30,8 @@ void setup() {
 }
 
 void loop() {
+  ble.print("Hello.");
+
   ctrl.read(ble);
   if (ctrl.isDirty(BluefruitState::ACCELEROMETER)) {
     ctrl.printAccel();

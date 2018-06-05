@@ -2,6 +2,7 @@ import React, { Component } from "react";
 
 const uart_service_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const tx_characteristic_uuid = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const rx_characteristic_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
 function char8StringToBufferWithChecksum(msg) {
   const buffer = new ArrayBuffer(msg.length + 1);
@@ -23,7 +24,7 @@ function withUARTCharacteristic(WrappedComponent) {
     constructor(...args) {
       super(...args);
 
-      this.characteristic = null;
+      this.characteristics = { tx: null, rx: null };
       this.isPressed = {};
       this.state = {
         ready: false,
@@ -55,14 +56,26 @@ function withUARTCharacteristic(WrappedComponent) {
           return device.gatt.connect();
         })
         .then(server => server.getPrimaryService(uart_service_uuid))
-        .then(service => service.getCharacteristic(tx_characteristic_uuid))
-        .then(characteristic => {
-          this.characteristic = characteristic;
+        .then(service =>
+          Promise.all([
+            service.getCharacteristic(tx_characteristic_uuid),
+            service.getCharacteristic(rx_characteristic_uuid)
+          ])
+        )
+        .then(([tx, rx]) => {
+          this.characteristics = { tx, rx };
           this.setState({
             ready: true,
             loading: false,
-            deviceName: characteristic.service.device.name
+            deviceName: tx.service.device.name
           });
+          rx
+            .startNotifications()
+            .then(c =>
+              c.addEventListener("characteristicvaluechanged", event =>
+                console.log(event)
+              )
+            );
         })
         .catch(error => {
           console.error("Error requesting Bluetooth device.", error);
@@ -75,7 +88,7 @@ function withUARTCharacteristic(WrappedComponent) {
 
     sendAsciiString = message => {
       const buffer = char8StringToBufferWithChecksum(message);
-      this.characteristic.writeValue(buffer);
+      this.characteristics.tx.writeValue(buffer);
       this.setState({
         messages: this.state.messages.concat({
           timestamp: Date.now(),
