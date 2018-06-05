@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import withUARTCharacteristic from "./withUARTCharacteristic";
 import ControlPad from "./ControlPad";
+import MessageTable from "./MessageTable";
+import MessageInput from "./MessageInput";
 
 import "./App.css";
 
@@ -23,6 +25,8 @@ class App extends Component {
         </div>
 
         <ControlPad {...this.props} />
+        <MessageInput {...this.props} />
+        <MessageTable messages={this.props.messages} />
       </div>
     );
   }

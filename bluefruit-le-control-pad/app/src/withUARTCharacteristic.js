@@ -28,7 +28,8 @@ function withUARTCharacteristic(WrappedComponent) {
       this.state = {
         ready: false,
         loading: false,
-        deviceName: null
+        deviceName: null,
+        messages: []
       };
     }
 
@@ -75,6 +76,13 @@ function withUARTCharacteristic(WrappedComponent) {
     sendAsciiString = message => {
       const buffer = char8StringToBufferWithChecksum(message);
       this.characteristic.writeValue(buffer);
+      this.setState({
+        messages: this.state.messages.concat({
+          timestamp: Date.now(),
+          type: "TX",
+          message
+        })
+      });
     };
 
     render() {
@@ -85,6 +93,7 @@ function withUARTCharacteristic(WrappedComponent) {
           deviceName={this.state.deviceName}
           sendAsciiString={this.sendAsciiString}
           requestDevice={this.requestDevice}
+          messages={this.state.messages}
         />
       );
     }

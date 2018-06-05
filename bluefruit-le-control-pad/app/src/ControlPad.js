@@ -2,7 +2,16 @@ import React, { Component } from "react";
 
 import "./ControlPad.css";
 
-function getButtonFromKeyCode(keyCode) {
+function getButton(event) {
+  if (event.target !== document.body) {
+    return null;
+  }
+
+  if (event.shiftKey || event.metaKey || event.ctrlKey) {
+    return null;
+  }
+
+  const { keyCode } = event;
   switch (keyCode) {
     case 38:
       return 5;
@@ -43,17 +52,17 @@ class ControlPad extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener("keydown", this.onKeyDown, true);
-    window.addEventListener("keyup", this.onKeyUp, true);
+    document.body.addEventListener("keydown", this.onKeyDown);
+    document.body.addEventListener("keyup", this.onKeyUp);
   }
 
   componentWillUnmount() {
-    window.removeEventListener("keydown", this.onKeyDown);
-    window.removeEventListener("keyup", this.onKeyUp);
+    document.body.removeEventListener("keydown", this.onKeyDown);
+    document.body.removeEventListener("keyup", this.onKeyUp);
   }
 
   onKeyDown = event => {
-    const key = getButtonFromKeyCode(event.keyCode);
+    const key = getButton(event);
     if (key) {
       event.preventDefault();
       this.onMouseDown(key);
@@ -61,7 +70,7 @@ class ControlPad extends Component {
   };
 
   onKeyUp = event => {
-    const key = getButtonFromKeyCode(event.keyCode);
+    const key = getButton(event);
     if (key) {
       event.preventDefault();
       this.onMouseUp(key);
