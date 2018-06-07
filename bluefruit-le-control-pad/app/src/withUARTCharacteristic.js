@@ -26,11 +26,14 @@ function withUARTCharacteristic(WrappedComponent) {
 
       this.characteristics = { tx: null, rx: null };
       this.isPressed = {};
+      this.isWriting = false;
+      this.queue = [];
+
       this.state = {
         ready: false,
         loading: false,
         deviceName: null,
-        messages: []
+        messages: [],
       };
     }
 
@@ -88,15 +91,42 @@ function withUARTCharacteristic(WrappedComponent) {
 
     sendAsciiString = message => {
       const buffer = char8StringToBufferWithChecksum(message);
-      this.characteristics.tx.writeValue(buffer);
       this.setState({
         messages: this.state.messages.concat({
           timestamp: Date.now(),
           type: "TX",
-          message
+          message,
         })
       });
+
+      if (this.isSending) {
+        console.warn('Characteristic busy. Queueing', message);
+        this.queue.push(message);
+        return;
+      }
+      this.isSending = true;
+      this.characteristics.tx.writeValue(buffer)
+        .then(() => {
+          this.isSending = false;
+          this.checkQueue();
+        });
     };
+
+    checkQueue() {
+      if (this.queue.length === 0 || this.isSending) {
+        return;
+      }
+
+      this.isSending = true;
+      const message = this.queue.shift();
+      const buffer = char8StringToBufferWithChecksum(message);
+      console.info('Dequeuing', message);
+      this.characteristics.tx.writeValue(buffer)
+        .then(() => {
+          this.isSending = false;
+          this.checkQueue();
+        });
+    }
 
     render() {
       return (
