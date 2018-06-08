@@ -13,7 +13,7 @@ uint8_t BluefruitState::getButtons() {
 bool BluefruitState::isDirty(Data data) {
   if (data == NONE) {
     // This is a cheat for "Is any of the data dirty?"
-    return data > 0;
+    return m_isDirty > 0;
   }
   return bitRead(m_isDirty, data);
 }
