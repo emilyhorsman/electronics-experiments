@@ -17,6 +17,7 @@ Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_
 BluefruitState ctrl;
 unsigned long int t;
 bool isTurning;
+float aD, aSum, aMax;
 
 void setup() {
   pinMode(PWMA, OUTPUT);
@@ -51,51 +52,51 @@ void setup() {
   ble.setMode(BLUEFRUIT_MODE_DATA);
 }
 
-void loop() {
-  ctrl.read(ble);
-  if (ctrl.isDirty(BluefruitState::BUTTONS)) {
-    if (ctrl.isButtonPressed(5)) {
-      analogWrite(PWMA, 255);
-      analogWrite(PWMB, 255);
-      digitalWrite(AIN1, LOW);
-      digitalWrite(AIN2, HIGH);
-      digitalWrite(BIN1, LOW);
-      digitalWrite(BIN2, HIGH);
-    } else if (ctrl.isButtonPressed(6)) {
-      isTurning = true;
-      t = millis();
-      analogWrite(PWMA, 80);
-      analogWrite(PWMB, 80);
-      digitalWrite(AIN1, HIGH);
-      digitalWrite(AIN2, LOW);
-      digitalWrite(BIN1, HIGH);
-      digitalWrite(BIN2, LOW);
-    } else if (ctrl.isButtonPressed(7)) {
-      analogWrite(PWMA, 100);
-      analogWrite(PWMB, 100);
-      digitalWrite(AIN1, LOW);
-      digitalWrite(AIN2, HIGH);
-      digitalWrite(BIN1, HIGH);
-      digitalWrite(BIN2, LOW);
-    } else if (ctrl.isButtonPressed(8)) {
-      analogWrite(PWMA, 100);
-      analogWrite(PWMB, 100);
-      digitalWrite(AIN1, HIGH);
-      digitalWrite(AIN2, LOW);
-      digitalWrite(BIN1, LOW);
-      digitalWrite(BIN2, HIGH);
-    } else {
-      isTurning = false;
-      digitalWrite(AIN1, LOW);
-      digitalWrite(AIN2, LOW);
-      digitalWrite(BIN1, LOW);
-      digitalWrite(BIN2, LOW);
-    }
+void setMotors(float a, float b) {
+  Serial.print(a);
+  Serial.print(", ");
+  Serial.println(b);
+  if (fabs(a) < 0.2) {
+    analogWrite(PWMA, 0);
+  } else {
+    analogWrite(
+      PWMA,
+      map(
+        min(100, fabs(a) * 100),
+        0, 100,
+        80, 255
+      )
+    );
+  }
+  if (fabs(b) < 0.2) {
+    analogWrite(PWMB, 0);
+  } else {
+    analogWrite(
+      PWMB,
+      map(
+        min(100, fabs(b) * 100),
+        0, 100,
+        80, 255
+      )
+    );
   }
 
-  if (isTurning) {
-    unsigned long int delta = min(1000, millis() - t);
-    analogWrite(PWMA, map(delta, 0, 1000, 80, 255));
-    analogWrite(PWMB, map(delta, 0, 1000, 80, 255));
+  digitalWrite(AIN1, a >= 0 ? LOW : HIGH);
+  digitalWrite(AIN2, a > 0 ? HIGH : LOW);
+  digitalWrite(BIN1, b >= 0 ? LOW : HIGH);
+  digitalWrite(BIN2, b > 0 ? HIGH : LOW);
+}
+
+void loop() {
+  ctrl.read(ble);
+
+  if (ctrl.isDirty(BluefruitState::NONE)) {
+    float aX = ctrl.getAccelX();
+    float aY = ctrl.getAccelY();
+    if (aY >= 0) {
+      if (aX <= 0) {
+        setMotors(aY - aX, max(aX, aY));
+      }
+    }
   }
 }
