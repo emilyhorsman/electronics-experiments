@@ -24,7 +24,7 @@ void BluefruitState::resetParsing() {
 }
 
 void BluefruitState::finalizeParsing() {
-  m_checksum = ~m_checksum;
+  /*m_checksum = ~m_checksum;
   if (m_checksum != m_replyByte) {
     Serial.print("Checksum mismatch. Received: ");
     Serial.print(m_checksum);
@@ -32,7 +32,7 @@ void BluefruitState::finalizeParsing() {
     Serial.println(m_replyByte);
     resetParsing();
     return;
-  }
+  }*/
 
   switch (m_data) {
     case BUTTONS:
@@ -61,6 +61,13 @@ void BluefruitState::finalizeParsing() {
       memcpy(&m_quatZ, &m_buf[8], 4);
       memcpy(&m_quatW, &m_buf[12], 4);
       bitSet(m_isDirty, QUATERNIONS);
+      break;
+    case JOY:
+      memcpy(&m_aJoyX, &m_buf[0], 4);
+      memcpy(&m_aJoyY, &m_buf[4], 4);
+      memcpy(&m_bJoyX, &m_buf[8], 4);
+      memcpy(&m_bJoyY, &m_buf[12], 4);
+      bitSet(m_isDirty, JOY);
       break;
     default:
       resetParsing();
@@ -104,6 +111,9 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
       case 'Q':
         m_data = QUATERNIONS;
         break;
+      case 'J':
+        m_data = JOY;
+        break;
       default:
         resetParsing();
         return m_replyByte;
@@ -120,7 +130,8 @@ uint8_t BluefruitState::read(Adafruit_BluefruitLE_SPI &ble) {
     (m_replyIndex == 4 && m_data == BUTTONS) ||
     (m_replyIndex == 14 && m_data == ACCELEROMETER) ||
     (m_replyIndex == 14 && m_data == GYRO) ||
-    (m_replyIndex == 18 && m_data == QUATERNIONS)
+    (m_replyIndex == 18 && m_data == QUATERNIONS) ||
+    (m_replyIndex == 18 && m_data == JOY)
   ) {
     finalizeParsing();
     return m_replyByte;
@@ -175,6 +186,12 @@ void BluefruitState::printQuat() {
   Serial.println(m_quatW);
 }
 
+void BluefruitState::printJoy() {
+  Serial.print(m_aJoyY);
+  Serial.print(" ");
+  Serial.println(m_bJoyY);
+}
+
 #define GETTER(member, func) float BluefruitState::func() { return member; }
 
 GETTER(m_accelX, getAccelX)
@@ -187,3 +204,7 @@ GETTER(m_quatX, getQuatX)
 GETTER(m_quatY, getQuatY)
 GETTER(m_quatZ, getQuatZ)
 GETTER(m_quatW, getQuatW)
+GETTER(m_aJoyX, getAJoyX)
+GETTER(m_aJoyY, getAJoyY)
+GETTER(m_bJoyX, getBJoyX)
+GETTER(m_bJoyY, getBJoyY)

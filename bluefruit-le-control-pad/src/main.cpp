@@ -51,8 +51,45 @@ void setup() {
   ble.setMode(BLUEFRUIT_MODE_DATA);
 }
 
+void setMotors(float a, float b) {
+  if (fabs(a) < 0.2) {
+    analogWrite(PWMA, 0);
+  } else {
+    analogWrite(
+      PWMA,
+      map(
+        fabs(a) * 100,
+        0, 100,
+        80, 255
+      )
+    );
+  }
+  if (fabs(b) < 0.2) {
+    analogWrite(PWMB, 0);
+  } else {
+    analogWrite(
+      PWMB,
+      map(
+        fabs(b) * 100,
+        0, 100,
+        80, 255
+      )
+    );
+  }
+
+  digitalWrite(AIN1, a >= 0 ? LOW : HIGH);
+  digitalWrite(AIN2, a > 0 ? HIGH : LOW);
+  digitalWrite(BIN1, b >= 0 ? LOW : HIGH);
+  digitalWrite(BIN2, b > 0 ? HIGH : LOW);
+}
+
 void loop() {
   ctrl.read(ble);
+  if (ctrl.isDirty(BluefruitState::NONE)) {
+    setMotors(-ctrl.getBJoyY(), -ctrl.getAJoyY());
+  }
+
+  /*
   if (ctrl.isDirty(BluefruitState::BUTTONS)) {
     if (ctrl.isButtonPressed(5)) {
       analogWrite(PWMA, 255);
@@ -97,5 +134,5 @@ void loop() {
     unsigned long int delta = min(1000, millis() - t);
     analogWrite(PWMA, map(delta, 0, 1000, 80, 255));
     analogWrite(PWMB, map(delta, 0, 1000, 80, 255));
-  }
+  }*/
 }

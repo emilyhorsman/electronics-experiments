@@ -19,6 +19,26 @@ function char8StringToBufferWithChecksum(msg) {
   return buffer;
 }
 
+function float32QuadBufferWithChecksum(quad) {
+  const view = new DataView(new ArrayBuffer(19));
+  const msg = "!J";
+  for (let i = 0; i < msg.length; i++) {
+    const c = msg.charCodeAt(i);
+    view.setUint8(i, c);
+  }
+  for (let i = 0; i < 4; i++) {
+    view.setFloat32(msg.length + i * 4, quad[i], true);
+  }
+
+  let checksum = 0;
+  for (let i = 0; i < 18; i++) {
+    checksum += view.getUint8(i);
+  }
+  view.setUint8(18, 255 - checksum % 255);
+
+  return view.buffer;
+}
+
 function withUARTCharacteristic(WrappedComponent) {
   return class extends Component {
     constructor(...args) {
@@ -33,7 +53,7 @@ function withUARTCharacteristic(WrappedComponent) {
         ready: false,
         loading: false,
         deviceName: null,
-        messages: [],
+        messages: []
       };
     }
 
@@ -95,21 +115,31 @@ function withUARTCharacteristic(WrappedComponent) {
         messages: this.state.messages.concat({
           timestamp: Date.now(),
           type: "TX",
-          message,
+          message
         })
       });
 
       if (this.isSending) {
-        console.warn('Characteristic busy. Queueing', message);
+        console.warn("Characteristic busy. Queueing", message);
         this.queue.push(message);
         return;
       }
       this.isSending = true;
-      this.characteristics.tx.writeValue(buffer)
-        .then(() => {
-          this.isSending = false;
-          this.checkQueue();
-        });
+      this.characteristics.tx.writeValue(buffer).then(() => {
+        this.isSending = false;
+        this.checkQueue();
+      });
+    };
+
+    sendFloatQuadString = quad => {
+      if (this.isSending) {
+        return;
+      }
+      this.isSending = true;
+      const buffer = float32QuadBufferWithChecksum(quad);
+      this.characteristics.tx.writeValue(buffer).then(() => {
+        this.isSending = false;
+      });
     };
 
     checkQueue() {
@@ -120,12 +150,11 @@ function withUARTCharacteristic(WrappedComponent) {
       this.isSending = true;
       const message = this.queue.shift();
       const buffer = char8StringToBufferWithChecksum(message);
-      console.info('Dequeuing', message);
-      this.characteristics.tx.writeValue(buffer)
-        .then(() => {
-          this.isSending = false;
-          this.checkQueue();
-        });
+      console.info("Dequeuing", message);
+      this.characteristics.tx.writeValue(buffer).then(() => {
+        this.isSending = false;
+        this.checkQueue();
+      });
     }
 
     render() {
@@ -135,8 +164,10 @@ function withUARTCharacteristic(WrappedComponent) {
           loading={this.state.loading}
           deviceName={this.state.deviceName}
           sendAsciiString={this.sendAsciiString}
+          sendFloatQuadString={this.sendFloatQuadString}
           requestDevice={this.requestDevice}
           messages={this.state.messages}
+          {...this.props}
         />
       );
     }

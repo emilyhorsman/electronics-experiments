@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import withUARTCharacteristic from "./withUARTCharacteristic";
+import withGamepad from "./withGamepad";
 import ControlPad from "./ControlPad";
 import MessageTable from "./MessageTable";
 import MessageInput from "./MessageInput";
@@ -7,6 +8,14 @@ import MessageInput from "./MessageInput";
 import "./App.css";
 
 class App extends Component {
+  componentDidUpdate() {
+    if (this.props.axes.length === 0 || !this.props.ready) {
+      return;
+    }
+
+    this.props.sendFloatQuadString(this.props.axes);
+  }
+
   render() {
     return (
       <div className="App">
@@ -32,4 +41,4 @@ class App extends Component {
   }
 }
 
-export default withUARTCharacteristic(App);
+export default withGamepad(withUARTCharacteristic(App));
