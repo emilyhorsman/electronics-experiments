@@ -14,7 +14,7 @@ function char8StringToBufferWithChecksum(msg) {
     bufferView[i] = c;
     checksum += c;
   }
-  bufferView[msg.length] = 255 - checksum % 255;
+  bufferView[msg.length] = ~(checksum % 256) & 255;
 
   return buffer;
 }
@@ -34,8 +34,7 @@ function float32QuadBufferWithChecksum(quad) {
   for (let i = 0; i < 18; i++) {
     checksum += view.getUint8(i);
   }
-  view.setUint8(18, 255 - checksum % 255);
-
+  view.setUint8(18, ~(checksum % 256) & 255);
   return view.buffer;
 }
 

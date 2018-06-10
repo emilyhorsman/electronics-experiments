@@ -24,15 +24,15 @@ void BluefruitState::resetParsing() {
 }
 
 void BluefruitState::finalizeParsing() {
-  /*m_checksum = ~m_checksum;
+  m_checksum = ~m_checksum;
   if (m_checksum != m_replyByte) {
-    Serial.print("Checksum mismatch. Received: ");
+    Serial.print("Checksum mismatch. Computed: ");
     Serial.print(m_checksum);
     Serial.print(" Expected: ");
     Serial.println(m_replyByte);
     resetParsing();
     return;
-  }*/
+  }
 
   switch (m_data) {
     case BUTTONS:
