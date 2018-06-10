@@ -51,31 +51,31 @@ void setup() {
   ble.setMode(BLUEFRUIT_MODE_DATA);
 }
 
-void setMotors(float a, float b) {
-  if (fabs(a) < 0.2) {
-    analogWrite(PWMA, 0);
+void setTankDriveMotors(float a, float b) {
+  int aY = (int)(a * 1023);
+  int bY = (int)(b * 1023);
+
+  if (abs(aY) < 100) {
+    aY = 0;
   } else {
-    analogWrite(
-      PWMA,
-      map(
-        fabs(a) * 100,
-        0, 100,
-        80, 255
-      )
-    );
+    aY = map(aY, 100, 1023, 80, 255);
   }
-  if (fabs(b) < 0.2) {
-    analogWrite(PWMB, 0);
+  if (abs(bY) < 100) {
+    bY = 0;
   } else {
-    analogWrite(
-      PWMB,
-      map(
-        fabs(b) * 100,
-        0, 100,
-        80, 255
-      )
-    );
+    bY = map(bY, 100, 1023, 80, 255);
   }
+
+  uchar_t msg[11];
+  msg[0] = '!';
+  msg[1] = 'M';
+  memcpy(&msg[2], &aY, 4);
+  memcpy(&msg[6], &bY, 4);
+  msg[10] = 'a';
+  ble.write(msg);
+
+  analogWrite(PWMA, aY);
+  analogWrite(PWMB, bY);
 
   digitalWrite(AIN1, a >= 0 ? LOW : HIGH);
   digitalWrite(AIN2, a > 0 ? HIGH : LOW);
@@ -83,13 +83,7 @@ void setMotors(float a, float b) {
   digitalWrite(BIN2, b > 0 ? HIGH : LOW);
 }
 
-void loop() {
-  ctrl.read(ble);
-  if (ctrl.isDirty(BluefruitState::NONE)) {
-    setMotors(-ctrl.getBJoyY(), -ctrl.getAJoyY());
-  }
-
-  /*
+void buttonDriveTick() {
   if (ctrl.isDirty(BluefruitState::BUTTONS)) {
     if (ctrl.isButtonPressed(5)) {
       analogWrite(PWMA, 255);
@@ -134,5 +128,16 @@ void loop() {
     unsigned long int delta = min(1000, millis() - t);
     analogWrite(PWMA, map(delta, 0, 1000, 80, 255));
     analogWrite(PWMB, map(delta, 0, 1000, 80, 255));
-  }*/
+  }
+}
+
+void tankDriveTick() {
+  if (ctrl.isDirty(BluefruitState::JOY)) {
+    setTankDriveMotors(-ctrl.getBJoyY(), -ctrl.getAJoyY());
+  }
+}
+
+void loop() {
+  ctrl.read(ble);
+  tankDriveTick();
 }

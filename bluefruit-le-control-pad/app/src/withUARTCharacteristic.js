@@ -91,13 +91,23 @@ function withUARTCharacteristic(WrappedComponent) {
             loading: false,
             deviceName: tx.service.device.name
           });
-          rx
-            .startNotifications()
-            .then(c =>
-              c.addEventListener("characteristicvaluechanged", event =>
-                console.log(event)
-              )
-            );
+          rx.startNotifications().then(c =>
+            c.addEventListener("characteristicvaluechanged", event => {
+              const view = event.target.value;
+              if (view.byteLength < 10) {
+                console.warn(
+                  `Received less than 10 bytes (${view.byteLength}).`
+                );
+                return;
+              }
+              console.log(
+                view.getUint8(0),
+                view.getUint8(1),
+                view.getInt32(2, true),
+                view.getInt32(6, true)
+              );
+            })
+          );
         })
         .catch(error => {
           console.error("Error requesting Bluetooth device.", error);
