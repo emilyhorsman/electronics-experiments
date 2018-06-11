@@ -49,6 +49,7 @@ void setup() {
   }
 
   ble.setMode(BLUEFRUIT_MODE_DATA);
+  t = millis();
 }
 
 void setTankDriveMotors(float a, float b) {
@@ -58,21 +59,19 @@ void setTankDriveMotors(float a, float b) {
   if (abs(aY) < 100) {
     aY = 0;
   } else {
-    aY = map(aY, 100, 1023, 80, 255);
+    aY = map(abs(aY), 100, 1023, 80, 255);
   }
   if (abs(bY) < 100) {
     bY = 0;
   } else {
-    bY = map(bY, 100, 1023, 80, 255);
+    bY = map(abs(bY), 100, 1023, 80, 255);
   }
 
-  uchar_t msg[11];
+  char msg[4];
   msg[0] = '!';
   msg[1] = 'M';
-  memcpy(&msg[2], &aY, 4);
-  memcpy(&msg[6], &bY, 4);
-  msg[10] = 'a';
-  ble.write(msg);
+  memcpy(&msg[2], &aY, 2);
+  ble.write(msg, 4);
 
   analogWrite(PWMA, aY);
   analogWrite(PWMB, bY);

@@ -91,21 +91,11 @@ function withUARTCharacteristic(WrappedComponent) {
             loading: false,
             deviceName: tx.service.device.name
           });
+          this.benchmark(tx);
           rx.startNotifications().then(c =>
             c.addEventListener("characteristicvaluechanged", event => {
               const view = event.target.value;
-              if (view.byteLength < 10) {
-                console.warn(
-                  `Received less than 10 bytes (${view.byteLength}).`
-                );
-                return;
-              }
-              console.log(
-                view.getUint8(0),
-                view.getUint8(1),
-                view.getInt32(2, true),
-                view.getInt32(6, true)
-              );
+              console.log(view.getUint32(0, true));
             })
           );
         })
@@ -116,6 +106,14 @@ function withUARTCharacteristic(WrappedComponent) {
             loading: false
           });
         });
+    };
+
+    benchmark = tx => {
+      const buffer = char8StringToBufferWithChecksum("foo");
+      tx.writeValue(buffer).then(() => {
+        console.log("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        this.benchmark(tx);
+      });
     };
 
     sendAsciiString = message => {
@@ -134,10 +132,10 @@ function withUARTCharacteristic(WrappedComponent) {
         return;
       }
       this.isSending = true;
-      this.characteristics.tx.writeValue(buffer).then(() => {
+      /*this.characteristics.tx.writeValue(buffer).then(() => {
         this.isSending = false;
         this.checkQueue();
-      });
+      });*/
     };
 
     sendFloatQuadString = quad => {
@@ -146,9 +144,9 @@ function withUARTCharacteristic(WrappedComponent) {
       }
       this.isSending = true;
       const buffer = float32QuadBufferWithChecksum(quad);
-      this.characteristics.tx.writeValue(buffer).then(() => {
+      /*this.characteristics.tx.writeValue(buffer).then(() => {
         this.isSending = false;
-      });
+      });*/
     };
 
     checkQueue() {
